@@ -126,7 +126,16 @@ class WebSocket(WebSocketHandler):
                         'agent_id': self.id,
                         'clients': client_ids
                     }))
-
+                
+                username = self.username if self.username != 'Anonymous' else 'there'
+                self.write_message(
+                        json.dumps({
+                            'type': 'MSG',
+                            'message': f'Hello {username}! One of our agent will chat with you shortly.',
+                            'sender': self.id,
+                            'is_agent': self.is_agent,
+                        }
+                    ))
 
         except Exception as e:
             print(str(e))
