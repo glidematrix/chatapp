@@ -1,0 +1,6 @@
+include setup.py
+include README.md
+include *.rst
+include LICENSE
+recursive-include chatapp/templates *
+recursive-include chatapp/static *

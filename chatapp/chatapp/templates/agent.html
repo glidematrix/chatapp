@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+
+        .dark{
+            --incoming-background: #262d31;
+            --outgoing-background: #054740;
+            --compose-input-background: #33383b;
+            --compose-primary: #f1f1f2;
+            --border-default: #242d32;
+            --primary-strong: rgba(241,241,242,0.92);
+            --secondary: rgba(241,241,242,0.63);
+        }
+
+        *,
+        html{
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+        body{
+            background-color: #0d1117;
+            height: 100vh;
+            width: 100vw;
+            padding: 10px;
+            color: var(--compose-primary);
+        }
+        .chat-container{
+            max-width: 750px;
+            /* max-height: 90vh; */
+            height: 90vh;
+            margin: auto;
+            /* height: 100%; */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #fff2;
+        }
+
+        .chat-top{
+            width: 100%;
+            height: 38px;
+            background-color: #161b22;
+            border-bottom: 1px solid #fff2;
+            display: flex;
+        }
+
+        .top-left{
+            width: 200px;
+            border-right: 1px solid #0002;
+            display: flex;
+            padding: 3px;
+            align-items: center
+        }
+
+        .top-right{
+            flex-grow: 1;
+            display: flex;
+            padding: 3px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        #profile-btn{
+            outline: none;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background-color: transparent;
+        }
+        #profile-btn img{
+            height: 30px;
+            width: 30px;
+        }
+
+
+        .chat-main{
+            height: 80vh;
+            display: flex;
+        }
+
+        .chat-side{
+            width: 200px;
+            background-color: #161b22;
+        }
+
+        #chat-list{
+            list-style: none;
+        }
+        .chat-list-item{
+            display: grid;
+            grid-template-columns: 45px 1fr;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .chat-image{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-image img{
+            height: 35px;
+        }
+        .chat-info{
+            border-bottom: 1px solid  var(--border-default);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .chat-header{
+            display: flex;
+            align-items: center;
+        }
+        .chat-name{
+            font-size: 15px;
+            flex-grow: 1;
+            color: var(--primary-strong);
+            font-weight: 400;
+        }
+        .chat-date{
+            color: var(--secondary);
+            font-size: 12px;
+        }
+
+        .chat-summary{
+            font-size: 12px;
+        }
+
+        .chat-msg-wrap{
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        #chat-msgs{
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .msg-out-wrap,
+        .msg-in-wrap{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-right: 4%;
+            padding-left: 4%;
+            margin-top: 6px;
+            margin-bottom: 6px;
+        }
+        .msg-out-wrap{
+            align-items: flex-end;
+        }
+        .msg-in-wrap{
+            align-items: flex-start;
+        }
+        .msg-out{
+            width: 75%;
+            background-color: var(--outgoing-background);
+            padding: 6px 7px 8px 9px;
+            box-sizing: border-box;
+            user-select: text;
+            border-radius: 7.5px;
+            border-top-right-radius: 0;
+            position: relative;
+            z-index: 200;
+        }
+        .msg-out::after{
+            content:'';
+            width: 0; 
+            height: 0; 
+            position: absolute;
+            top: 0;
+            right: -10px;
+            border-right: 10px solid transparent;
+            border-top: 10px solid var(--outgoing-background);
+        }
+        .msg-in{
+            width: 75%;
+            background-color: var(--incoming-background);
+            padding: 6px 7px 8px 9px;
+            box-sizing: border-box;
+            user-select: text;
+            border-radius: 7.5px;
+            border-top-left-radius: 0;
+            position: relative;
+            z-index: 200;
+        }
+
+        .msg-in::after{
+            content:'';
+            width: 0; 
+            height: 0; 
+            position: absolute;
+
+            top: 0;
+            left: -10px;
+            border-left: 10px solid transparent;
+            border-top: 10px solid var(--incoming-background);
+        }
+
+        .input-wrap{
+            display: flex;
+        }
+        #msg-input{
+            flex-grow: 1;
+            outline: none;
+            padding: 5px;
+            color: var(--compose-primary);
+            background-color: var(--compose-input-background);
+        }
+        #send-msg-btn{
+            background: #000;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="dark">
+    <div class="chat-container">
+        <div class="chat-top">
+            <div class="top-left">
+                <div>
+                    <span>Agent Chat Portal</span>
+                </div>
+            </div>
+            <div class="top-right">
+                <button id="profile-btn">
+                    <img src="../static/user.png" alt="user">
+                </button>
+                <span id="recipient" dir="auto" title="Jane Doe" class="">Jane Doe</span>
+            </div>
+        </div>
+        <div class="chat-main">
+            <div class="chat-side">
+                <ul id="chat-list">
+                    <li class="chat-list-item">
+                        <div class="chat-image">
+                            <img src="../static/user.png" alt="user">
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-header">
+                                <div class="chat-name">
+                                    Jane Doe
+                                </div>
+                                <div class="chat-date">
+                                    <!-- 08/11/2020 -->
+                                </div>
+                            </div>
+                            <div class="chat-summary">
+                                <!-- Last chat message... -->
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="chat-msg-wrap">
+                <div id="chat-msgs">
+                    <!-- <div class="msg-out-wrap">
+                        <div class="msg-out">
+                            msg out
+                        </div>
+                    </div>
+                    <div class="msg-in-wrap">
+                        <div class="msg-in">
+                            msg in
+                        </div>
+                    </div> -->
+                </div>
+                <div class="input-wrap">
+                    <div id="msg-input" contenteditable="true"  dir="ltr" spellcheck="false">
+
+                    </div>
+                    <button id="send-msg-btn">
+                        send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+
+            const msgInput = document.querySelector('#msg-input')
+            const sendMsgBtn = document.querySelector('#send-msg-btn')
+            const chatMsgs = document.querySelector('#chat-msgs')
+
+            const chatList = document.querySelector('#chat-list')
+
+            const chatListItem = document.querySelector('#chat-list-item')
+
+            const recipient = document.querySelector('#recipient')
+
+            function connect() {
+                const ws = new WebSocket(`ws://${location.host}/websocket?token=12345`);
+                
+                window.ws = ws;
+
+                ws.onopen = function(e) {
+
+                    console.log('connected')
+
+                    localStorage.removeItem('active_client_id')
+
+                };
+
+                ws.onmessage = function(e) {
+                    const data = JSON.parse(e.data)
+                    const {
+                        message, 
+                        uid, 
+                        type, 
+                        agend_id, 
+                        clients,
+
+                    } = data
+
+                    console.log(data)
+
+                    if(clients){
+                        console.log(`${clients.length} Clients Connnected.`)
+                        chatList.innerHTML = ''
+
+                        if(clients.length > 0){
+                            recipient.textContent = clients[0].username
+
+                            if (localStorage.getItem('active_client_id') === null){
+                                localStorage.setItem('active_client_id', clients[0].client_id)
+                            }
+
+                        }
+
+                        clients.forEach(client => {
+                            const li = document.createElement('li')
+
+                            li.addEventListener('click', function(e){
+
+                                const client_id = this.dataset.clientId
+
+                                ws.send(
+                                    JSON.stringify({
+                                        'type': 'ACTIVE_CHAT',
+                                        'client_id': client_id
+                                    })
+                                );
+
+                            })
+
+                            li.classList.add('chat-list-item')
+    
+                            const chat_img_div = document.createElement('div')
+                            chat_img_div.classList.add('chat-image')
+                            const img_node = document.createElement('img')
+                            img_node.setAttribute('src', '../static/user.png')
+                            chat_img_div.appendChild(img_node)
+                            li.dataset.clientId = client['client_id']
+
+                            li.appendChild(chat_img_div)
+    
+                            const chat_info = document.createElement('div')
+                            chat_info.classList.add('chat-info')
+                            const chat_name = document.createElement('div')
+                            chat_name.classList.add('chat-name')
+                            chat_name.appendChild(document.createTextNode(client['username']))
+                            chat_info.appendChild(chat_name)
+                            li.appendChild(chat_info)
+    
+
+                            chatList.appendChild(li)
+
+                        });
+                    }
+
+                    if (type === 'SET_UID'){
+                        // document.querySelector('#uid').textContent = `UID: ${uid}`
+                    }
+
+
+                    if (type === 'MSG'){
+                        const msg_wrap = document.createElement("div");
+                        msg_wrap.classList.add('msg-in-wrap')
+
+                        msg_div =  document.createElement("div");
+                        msg_div.classList.add('msg-in')
+                        msg_div.appendChild(document.createTextNode(message))
+
+                        msg_wrap.appendChild(msg_div)
+
+                        chatMsgs.appendChild(msg_wrap)
+                    }
+
+                    if (type === 'ACTIVE_CHAT'){
+                        chatMsgs.innerHTML = ''
+                        recipient.textContent = data['username']
+                        localStorage.setItem('active_client_id', data['client_id'])
+                    }
+                };
+
+                ws.onclose = function(e) {
+                    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+                    setTimeout(function() {
+                    connect();
+                    }, 1000);
+                };
+
+                ws.onerror = function(err) {
+                    console.error('Socket encountered error: ', err.message, 'Closing socket');
+                    ws.close();
+                };
+            }
+
+            connect();
+
+            msgInput.addEventListener("keyup", function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+
+                    let msg = msgInput.textContent
+                    msgInput.innerHTML = ''
+
+                    const msg_wrap = document.createElement("div");
+                    msg_wrap.classList.add('msg-out-wrap')
+
+                    msg_div =  document.createElement("div");
+                    msg_div.classList.add('msg-out')
+                    msg_div.appendChild(document.createTextNode(msg))
+
+                    msg_wrap.appendChild(msg_div)
+
+                    chatMsgs.appendChild(msg_wrap)
+
+                    ws.send(
+                        JSON.stringify({
+                            'message': msg,
+                            'type': 'MSG',
+                            'to': localStorage.getItem('active_client_id')
+                        })
+                    );
+
+                }
+            })
+
+            
+        })()
+    </script>
+</body>
+</html>

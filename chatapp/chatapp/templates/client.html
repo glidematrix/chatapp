@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Chat</title>
+    <style>
+        .dark{
+            --incoming-background: #262d31;
+            --outgoing-background: #054740;
+            --compose-input-background: #33383b;
+            --compose-primary: #f1f1f2;
+            --border-default: #242d32;
+            --primary-strong: rgba(241,241,242,0.92);
+            --secondary: rgba(241,241,242,0.63);
+        }
+
+        *,
+        html{
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+        body{
+            background-color: #0d1117;
+            height: 100vh;
+            width: 100vw;
+            padding: 10px;
+            color: var(--compose-primary);
+        }
+        .chat-container{
+            max-width: 750px;
+            /* max-height: 90vh; */
+            height: 90vh;
+            margin: auto;
+            /* height: 100%; */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #fff2;
+        }
+        .header{
+            padding: 10px;
+            border-bottom: 1px solid #fff2;
+        }
+        .chat-msg-wrap{
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        #chat-msgs{
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .msg-out-wrap,
+        .msg-in-wrap{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-right: 4%;
+            padding-left: 4%;
+            margin-top: 6px;
+            margin-bottom: 6px;
+        }
+        .msg-out-wrap{
+            align-items: flex-end;
+        }
+        .msg-in-wrap{
+            align-items: flex-start;
+        }
+        .msg-out{
+            width: 75%;
+            background-color: var(--outgoing-background);
+            padding: 6px 7px 8px 9px;
+            box-sizing: border-box;
+            user-select: text;
+            border-radius: 7.5px;
+            border-top-right-radius: 0;
+            position: relative;
+            z-index: 200;
+        }
+        .msg-out::after{
+            content:'';
+            width: 0; 
+            height: 0; 
+            position: absolute;
+            top: 0;
+            right: -10px;
+            border-right: 10px solid transparent;
+            border-top: 10px solid var(--outgoing-background);
+        }
+        .msg-in{
+            width: 75%;
+            background-color: var(--incoming-background);
+            padding: 6px 7px 8px 9px;
+            box-sizing: border-box;
+            user-select: text;
+            border-radius: 7.5px;
+            border-top-left-radius: 0;
+            position: relative;
+            z-index: 200;
+        }
+
+        .msg-in::after{
+            content:'';
+            width: 0; 
+            height: 0; 
+            position: absolute;
+
+            top: 0;
+            left: -10px;
+            border-left: 10px solid transparent;
+            border-top: 10px solid var(--incoming-background);
+        }
+
+        .input-wrap{
+            display: flex;
+        }
+        #msg-input{
+            flex-grow: 1;
+            outline: none;
+            padding: 5px;
+            color: var(--compose-primary);
+            background-color: var(--compose-input-background);
+        }
+        #send-msg-btn{
+            background: #000;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px;
+            color: #fff;
+        }
+
+        #uid{
+            font-size: 10px;
+            color: #d3d3d3;
+        }
+    </style>
+</head>
+<body class="dark">
+    <div class="chat-container">
+        <div class="header">
+            <h3>Support Chat</h3>
+            <span id="uid"></span>
+        </div>
+        <div class="chat-msg-wrap">
+            <div id="chat-msgs">
+                <!-- <div class="msg-out-wrap">
+                    <div class="msg-out">
+                        msg out
+                    </div>
+                </div>
+                <div class="msg-in-wrap">
+                    <div class="msg-in">
+                        msg in
+                    </div>
+                </div>
+                <div class="msg-in-wrap">
+                    <div class="msg-in">
+                        msg in
+                    </div>
+                </div>
+                <div class="msg-out-wrap">
+                    <div class="msg-out">
+                        msg out
+                    </div>
+                </div> -->
+            </div>
+            <div class="input-wrap">
+                <div id="msg-input" contenteditable="true"  dir="ltr" spellcheck="false">
+
+                </div>
+                <button id="send-msg-btn">
+                    send
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            const msgInput = document.querySelector('#msg-input')
+            const sendMsgBtn = document.querySelector('#send-msg-btn')
+            const chatMsgs = document.querySelector('#chat-msgs')
+
+            function connect() {
+                const ws = new WebSocket(`ws://${location.host}/websocket`);
+                
+                window.ws = ws;
+
+                ws.onopen = function(e) {
+                    console.log('connected')
+                };
+
+                ws.onmessage = function(e) {
+                    const data = JSON.parse(e.data)
+                    const {
+                        message, 
+                        uid, 
+                        type, 
+                        next_action
+                    } = data
+
+
+                    if(!!next_action){
+                        localStorage.setItem('next_action', next_action)
+                    }
+                   
+
+                    if (type === 'SET_UID'){
+                        document.querySelector('#uid').textContent = `UID: ${uid}`
+                    }
+
+                    if (type === 'MSG'){
+                        const msg_wrap = document.createElement("div");
+                        msg_wrap.classList.add('msg-in-wrap')
+
+                        msg_div =  document.createElement("div");
+                        msg_div.classList.add('msg-in')
+                        msg_div.appendChild(document.createTextNode(message))
+
+                        msg_wrap.appendChild(msg_div)
+
+                        chatMsgs.appendChild(msg_wrap)
+
+                        chatMsgs.scrollTop = chatMsgs.scrollHeight
+                    }
+                };
+
+                ws.onclose = function(e) {
+                    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+                    setTimeout(function() {
+                    connect();
+                    }, 1000);
+                };
+
+                ws.onerror = function(err) {
+                    console.error('Socket encountered error: ', err.message, 'Closing socket');
+                    ws.close();
+                };
+            }
+
+            connect();
+
+            msgInput.addEventListener("keyup", function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    let msg = msgInput.textContent
+                    msgInput.innerHTML = ''
+
+                    const msg_wrap = document.createElement("div");
+                    msg_wrap.classList.add('msg-out-wrap')
+
+                    msg_div =  document.createElement("div");
+                    msg_div.classList.add('msg-out')
+                    msg_div.appendChild(document.createTextNode(msg))
+
+                    msg_wrap.appendChild(msg_div)
+
+                    chatMsgs.appendChild(msg_wrap)
+
+                    chatMsgs.scrollTop = chatMsgs.scrollHeight
+
+                    let next_action = localStorage.getItem('next_action') 
+                    let type = 'MSG'
+
+                    console.log('next_action')
+                    console.log(next_action)
+                    
+                    if (!!next_action){
+                        type = next_action
+                        localStorage.removeItem('next_action')
+                    }
+                    ws.send(
+                        JSON.stringify({
+                            'message': msg,
+                            'type': type,
+                        })
+                    );
+
+                }
+            })
+
+        })()
+    </script>
+</body>
+</html>
