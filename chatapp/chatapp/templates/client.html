@@ -206,6 +206,7 @@
                         next_action
                     } = data
 
+                    console.log(`UID: ${uid}`)
 
                     if(!!next_action){
                         localStorage.setItem('next_action', next_action)
@@ -250,40 +251,44 @@
             msgInput.addEventListener("keyup", function(event) {
                 if (event.keyCode === 13) {
                     event.preventDefault();
-                    let msg = msgInput.textContent
-                    msgInput.innerHTML = ''
 
-                    const msg_wrap = document.createElement("div");
-                    msg_wrap.classList.add('msg-out-wrap')
-
-                    msg_div =  document.createElement("div");
-                    msg_div.classList.add('msg-out')
-                    msg_div.appendChild(document.createTextNode(msg))
-
-                    msg_wrap.appendChild(msg_div)
-
-                    chatMsgs.appendChild(msg_wrap)
-
-                    chatMsgs.scrollTop = chatMsgs.scrollHeight
-
-                    let next_action = localStorage.getItem('next_action') 
-                    let type = 'MSG'
-
-                    console.log('next_action')
-                    console.log(next_action)
-                    
-                    if (!!next_action){
-                        type = next_action
-                        localStorage.removeItem('next_action')
-                    }
-                    ws.send(
-                        JSON.stringify({
-                            'message': msg,
-                            'type': type,
-                        })
-                    );
-
+                    sendMsgBtn.click()
                 }
+            })
+
+            sendMsgBtn.addEventListener('click', function(){
+                let msg = msgInput.textContent
+                msgInput.innerHTML = ''
+
+                const msg_wrap = document.createElement("div");
+                msg_wrap.classList.add('msg-out-wrap')
+
+                msg_div =  document.createElement("div");
+                msg_div.classList.add('msg-out')
+                msg_div.appendChild(document.createTextNode(msg))
+
+                msg_wrap.appendChild(msg_div)
+
+                chatMsgs.appendChild(msg_wrap)
+
+                chatMsgs.scrollTop = chatMsgs.scrollHeight
+
+                let next_action = localStorage.getItem('next_action') 
+                let type = 'MSG'
+
+                console.log('next_action')
+                console.log(next_action)
+                
+                if (!!next_action){
+                    type = next_action
+                    localStorage.removeItem('next_action')
+                }
+                ws.send(
+                    JSON.stringify({
+                        'message': msg,
+                        'type': type,
+                    })
+                );
             })
 
         })()

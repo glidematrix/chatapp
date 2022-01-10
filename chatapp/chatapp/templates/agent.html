@@ -85,7 +85,7 @@
         }
 
         .chat-side{
-            width: 200px;
+            min-width: 200px;
             background-color: #161b22;
         }
 
@@ -237,13 +237,15 @@
                 <button id="profile-btn">
                     <img src="../static/user.png" alt="user">
                 </button>
-                <span id="recipient" dir="auto" title="Jane Doe" class="">Jane Doe</span>
+                <span id="recipient" dir="auto" title="Jane Doe" class="">
+                    <!-- Jane Doe -->
+                </span>
             </div>
         </div>
         <div class="chat-main">
             <div class="chat-side">
                 <ul id="chat-list">
-                    <li class="chat-list-item">
+                    <!-- <li class="chat-list-item">
                         <div class="chat-image">
                             <img src="../static/user.png" alt="user">
                         </div>
@@ -253,14 +255,14 @@
                                     Jane Doe
                                 </div>
                                 <div class="chat-date">
-                                    <!-- 08/11/2020 -->
+                                    08/11/2020
                                 </div>
                             </div>
                             <div class="chat-summary">
-                                <!-- Last chat message... -->
+                                Last chat message...
                             </div>
                         </div>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
             <div class="chat-msg-wrap">
@@ -301,7 +303,7 @@
             const recipient = document.querySelector('#recipient')
 
             function connect() {
-                const ws = new WebSocket(`ws://${location.host}/websocket?token=12345`);
+                const ws = new WebSocket(`ws://${location.host}/websocket?token=dummy-agent-token`);
                 
                 window.ws = ws;
 
@@ -321,6 +323,7 @@
                         type, 
                         agend_id, 
                         clients,
+                        channel,
 
                     } = data
 
@@ -335,6 +338,7 @@
 
                             if (localStorage.getItem('active_client_id') === null){
                                 localStorage.setItem('active_client_id', clients[0].client_id)
+                                localStorage.setItem('channel', clients[0].channel)
                             }
 
                         }
@@ -363,6 +367,7 @@
                             img_node.setAttribute('src', '../static/user.png')
                             chat_img_div.appendChild(img_node)
                             li.dataset.clientId = client['client_id']
+                            li.dataset.channel = client['channel']
 
                             li.appendChild(chat_img_div)
     
@@ -402,6 +407,7 @@
                         chatMsgs.innerHTML = ''
                         recipient.textContent = data['username']
                         localStorage.setItem('active_client_id', data['client_id'])
+                        localStorage.setItem('channel', data['channel'])
                     }
                 };
 
@@ -424,29 +430,34 @@
                 if (event.keyCode === 13) {
                     event.preventDefault();
 
-                    let msg = msgInput.textContent
-                    msgInput.innerHTML = ''
-
-                    const msg_wrap = document.createElement("div");
-                    msg_wrap.classList.add('msg-out-wrap')
-
-                    msg_div =  document.createElement("div");
-                    msg_div.classList.add('msg-out')
-                    msg_div.appendChild(document.createTextNode(msg))
-
-                    msg_wrap.appendChild(msg_div)
-
-                    chatMsgs.appendChild(msg_wrap)
-
-                    ws.send(
-                        JSON.stringify({
-                            'message': msg,
-                            'type': 'MSG',
-                            'to': localStorage.getItem('active_client_id')
-                        })
-                    );
-
+                    sendMsgBtn.click()
                 }
+            })
+
+            sendMsgBtn.addEventListener('click', function(){
+
+                let msg = msgInput.textContent
+                msgInput.innerHTML = ''
+
+                const msg_wrap = document.createElement("div");
+                msg_wrap.classList.add('msg-out-wrap')
+
+                msg_div =  document.createElement("div");
+                msg_div.classList.add('msg-out')
+                msg_div.appendChild(document.createTextNode(msg))
+
+                msg_wrap.appendChild(msg_div)
+
+                chatMsgs.appendChild(msg_wrap)
+
+                ws.send(
+                    JSON.stringify({
+                        'message': msg,
+                        'type': 'MSG',
+                        'to': localStorage.getItem('active_client_id')
+                    })
+                );
+
             })
 
             
