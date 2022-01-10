@@ -13,7 +13,7 @@ There are 2 web chat pages:
 
 
 
-| :exclamation:  To use the Whatsapp channel, The WhatsApp account to be used needs to be added to the sandbox by sending a WhatsApp message message to **+1 415 523 8886** with code **join spin-queen**.   |
+| :exclamation:  To use the Whatsapp channel, the account to be used needs to be added to the sandbox by sending a WhatsApp message to **+1 415 523 8886** with code **join spin-queen**.   |
 |-----------------------------------------------|
 
 To install and run the application:
