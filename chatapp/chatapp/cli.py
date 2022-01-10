@@ -39,6 +39,7 @@ def run():
         'websocket_ping_interval': 5,
     }
 
+    # Wrap flask app in tornado wsgi conatiner
     container = WSGIContainer(app)
     tornado_app = Application([
         (r'/websocket', websocket.WebSocket),

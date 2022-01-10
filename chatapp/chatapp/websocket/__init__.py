@@ -9,13 +9,13 @@ from dataclasses import dataclass
 import traceback
 import logging
 from chatapp.channels.whatsapp import WhatsApp
+from chatapp.channels.facebook import Facebook
 
 logger = logging.getLogger(__name__)
 
 CHAT_CHANNEL_WEB = 'WEB'
 CHAT_CHANNEL_WHATSAPP = 'WHATSAPP'
 CHAT_CHANNEL_FB = 'FB'
-
 
 
 class HashableDict(dict):
@@ -162,6 +162,16 @@ class WebSocket(WebSocketHandler):
                                     phone=rid
                                 )
 
+                        if client.chat_channel ==  CHAT_CHANNEL_FB:
+                            fb = Facebook()
+
+                            res = fb.send_message(
+                                message,
+                                recipient_id=rid
+                            )
+
+                            logger.info(res)
+
             if type == 'ACTIVE_CHAT':
                 client_id = data.get('client_id')
                 for client in self.clients:
@@ -244,7 +254,7 @@ class WebSocket(WebSocketHandler):
             client_data = HashableDict()
             client_data.id = sender
             client_data.username = sender
-            client_data.chat_channel = CHAT_CHANNEL_WHATSAPP
+            client_data.chat_channel = channel
             
             try:
                 clients = [{
@@ -255,6 +265,16 @@ class WebSocket(WebSocketHandler):
                 } for client in cls.clients ]
 
                 if not any([ c.get('id', None)  ==  sender for c in clients]):
+
+                    if channel == CHAT_CHANNEL_FB:
+                        fb = Facebook()
+                        fb_profile = fb.profile(
+                            sender
+                        )
+                        logger.info(fb_profile)
+                        first_name = fb_profile.get('first_name')
+                        last_name =  fb_profile.get('last_name')
+                        client_data.username = f'{first_name} {last_name} (FB)'
 
                     cls.clients.add(client_data)
 
