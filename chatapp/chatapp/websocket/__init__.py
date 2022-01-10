@@ -121,7 +121,7 @@ class WebSocket(WebSocketHandler):
             rid = data.get('to') # recipient id or whatsapp number
             message = data.get('message', '').strip() # message text
 
-            logger.info('DATA: {data}')
+            logger.info(f'DATA: {data}')
 
             logger.info(f'To Recipient: {rid}')
             logger.info(f'From User: {self.id}')
@@ -146,6 +146,8 @@ class WebSocket(WebSocketHandler):
  
                     else:
                         if rid == client.id:
+                            logger.info(f'MATCHED: {client}')
+                            
                             if client.chat_channel ==  CHAT_CHANNEL_WEB:
                                 client.write_message(
                                     json.dumps({
@@ -157,6 +159,7 @@ class WebSocket(WebSocketHandler):
                                 ))
 
                             if client.chat_channel ==  CHAT_CHANNEL_WHATSAPP:
+                            
                                     wa = WhatsApp()
 
                                     wa.send(
@@ -164,7 +167,8 @@ class WebSocket(WebSocketHandler):
                                         phone=rid
                                     )
 
-                            if client.chat_channel ==  CHAT_CHANNEL_FB:
+                            # if client.chat_channel ==  CHAT_CHANNEL_FB:
+                            if getattr(client, 'channel', None)  ==  CHAT_CHANNEL_FB:
                                 fb = Facebook()
 
                                 res = fb.send_message(
