@@ -121,6 +121,8 @@ class WebSocket(WebSocketHandler):
             rid = data.get('to') # recipient id or whatsapp number
             message = data.get('message', '').strip() # message text
 
+            logger.info('DATA: {data}')
+
             logger.info(f'To Recipient: {rid}')
             logger.info(f'From User: {self.id}')
 
@@ -154,23 +156,23 @@ class WebSocket(WebSocketHandler):
                                     }
                                 ))
 
-                        if client.chat_channel ==  CHAT_CHANNEL_WHATSAPP:
-                                wa = WhatsApp()
+                            if client.chat_channel ==  CHAT_CHANNEL_WHATSAPP:
+                                    wa = WhatsApp()
 
-                                wa.send(
+                                    wa.send(
+                                        message,
+                                        phone=rid
+                                    )
+
+                            if client.chat_channel ==  CHAT_CHANNEL_FB:
+                                fb = Facebook()
+
+                                res = fb.send_message(
                                     message,
-                                    phone=rid
+                                    recipient_id=rid
                                 )
 
-                        if client.chat_channel ==  CHAT_CHANNEL_FB:
-                            fb = Facebook()
-
-                            res = fb.send_message(
-                                message,
-                                recipient_id=rid
-                            )
-
-                            logger.info(res)
+                                logger.info(res)
 
             if type == 'ACTIVE_CHAT':
                 client_id = data.get('client_id')
