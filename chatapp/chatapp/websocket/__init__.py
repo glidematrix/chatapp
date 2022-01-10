@@ -146,8 +146,8 @@ class WebSocket(WebSocketHandler):
  
                     else:
                         if rid == client.id:
-                            logger.info(f'MATCHED: {client}')
-                            
+                            logger.info(f"MATCHED: {client}\nCHANNEL: {getattr(client, 'channel', None)}")
+
                             if client.chat_channel ==  CHAT_CHANNEL_WEB:
                                 client.write_message(
                                     json.dumps({
