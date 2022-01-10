@@ -303,7 +303,8 @@
             const recipient = document.querySelector('#recipient')
 
             function connect() {
-                const ws = new WebSocket(`ws://${location.host}/websocket?token=dummy-agent-token`);
+                const wsprotol = location.protocol === 'https:' ? 'wss' : 'ws'
+                const ws = new WebSocket(`${wsprotol}://${location.host}/websocket?token=dummy-agent-token`);
                 
                 window.ws = ws;
 

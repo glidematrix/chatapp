@@ -189,7 +189,8 @@
             const chatMsgs = document.querySelector('#chat-msgs')
 
             function connect() {
-                const ws = new WebSocket(`ws://${location.host}/websocket`);
+                const wsprotol = location.protocol === 'https:' ? 'wss' : 'ws'
+                const ws = new WebSocket(`${wsprotol}://${location.host}/websocket`);
                 
                 window.ws = ws;
 
