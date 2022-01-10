@@ -50,7 +50,7 @@ class WebSocket(WebSocketHandler):
             self.id = uuid4().hex
 
             self.is_agent = False
-            self.chat_channel = CHAT_CHANNEL_WEB
+            self.channel = CHAT_CHANNEL_WEB
     
             if token:
                 self.is_agent = True
@@ -83,7 +83,7 @@ class WebSocket(WebSocketHandler):
             clients_data = [{
                 'username' : getattr(client, 'username', 'Anonymous') ,
                 'client_id' : client.id ,
-                'channel': client.chat_channel,
+                'channel': client.channel,
                 } for client in self.clients ]
             
             # agents_copy = self.agents.copy()# fix - Error: RuntimeError: Set changed size during iteration
@@ -131,9 +131,11 @@ class WebSocket(WebSocketHandler):
                 clients = [*self.clients, *self.agents]
                 for client in clients:
 
+                    logger.info(f'{client.channel}')
+
                     # Send Client message to all Agents
                     if not rid and client.is_agent and (self != client):
-                        if client.chat_channel ==  CHAT_CHANNEL_WEB:
+                        if client.channel ==  CHAT_CHANNEL_WEB:
                             client.write_message(
                                     json.dumps({
                                         'type': type,
@@ -148,7 +150,7 @@ class WebSocket(WebSocketHandler):
                         if rid == client.id:
                             logger.info(f"MATCHED: {client}\nCHANNEL: {getattr(client, 'channel', None)}")
 
-                            if client.chat_channel ==  CHAT_CHANNEL_WEB:
+                            if client.channel ==  CHAT_CHANNEL_WEB:
                                 client.write_message(
                                     json.dumps({
                                         'type': type,
@@ -158,7 +160,7 @@ class WebSocket(WebSocketHandler):
                                     }
                                 ))
 
-                            if client.chat_channel ==  CHAT_CHANNEL_WHATSAPP:
+                            if client.channel ==  CHAT_CHANNEL_WHATSAPP:
                             
                                     wa = WhatsApp()
 
@@ -167,7 +169,7 @@ class WebSocket(WebSocketHandler):
                                         phone=rid
                                     )
 
-                            # if client.chat_channel ==  CHAT_CHANNEL_FB:
+                            # if client.channel ==  CHAT_CHANNEL_FB:
                             if getattr(client, 'channel', None)  ==  CHAT_CHANNEL_FB:
                                 fb = Facebook()
 
@@ -195,7 +197,7 @@ class WebSocket(WebSocketHandler):
                 client_ids = [{
                     'username': getattr(client, 'username', 'Anonymous'),
                     'client_id': client.id,
-                    'channel': client.chat_channel,
+                    'channel': client.channel,
                 } for client in self.clients ]
                 
                 for agent in self.agents:
@@ -230,7 +232,7 @@ class WebSocket(WebSocketHandler):
             client_ids = [{
                 'username': getattr(client, 'username', 'Anonymous'),
                 'client_id': client.id,
-                'channel': client.chat_channel,
+                'channel': client.channel,
             } for client in self.clients ]
             
             for agent in self.agents:
@@ -246,7 +248,7 @@ class WebSocket(WebSocketHandler):
     @classmethod
     def write_to_clients(cls, message):
         for client in cls.clients:
-            if client.chat_channel ==  CHAT_CHANNEL_WEB:
+            if client.channel ==  CHAT_CHANNEL_WEB:
                 client.write_message(json.dumps({
                     "msg": message
                 }))
@@ -260,7 +262,7 @@ class WebSocket(WebSocketHandler):
             client_data = HashableDict()
             client_data.id = sender
             client_data.username = sender
-            client_data.chat_channel = channel
+            client_data.channel = channel
             
             try:
                 clients = [{
